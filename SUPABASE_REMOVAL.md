@@ -28,8 +28,8 @@ This document outlines the changes made to remove Supabase from the frontend and
 
 **Modified Files:**
 - `src/app/dashboard/page.tsx` - Uses `getMockUser()` instead of Supabase
-- `src/app/auth/login/page.tsx` - Uses `getMockSession()` instead of Supabase
-- `src/app/auth/sign-up/page.tsx` - Uses `getMockSession()` instead of Supabase
+- `src/app/signin/page.tsx` - Uses `getMockSession()` instead of Supabase
+- `src/app/signup/page.tsx` - Uses `getMockSession()` instead of Supabase
 
 ### 5. API Routes Updated
 

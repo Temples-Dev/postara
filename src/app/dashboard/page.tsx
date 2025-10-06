@@ -1,17 +1,23 @@
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LogOut, Mail, Calendar, Sparkles } from "lucide-react"
-import { signOut } from "@/lib/actions"
-import { getMockUser } from "@/lib/mock/auth"
+import { Mail, Calendar, Sparkles } from "lucide-react"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 import Image from "next/image"
+import Link from "next/link"
+import { SignOutButton } from "@/components/SignOutButton"
 
 export default async function Dashboard() {
-  const user = await getMockUser()
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
 
-  if (!user) {
-    redirect("/auth/login")
+  if (!session) {
+    redirect("/signin")
   }
+
+  const user = session.user
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
@@ -25,13 +31,21 @@ export default async function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-600">Welcome, {user.email}</span>
-              <form action={signOut}>
-                <Button type="submit" variant="outline" size="sm">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </form>
+              <div className="flex items-center gap-2">
+                {user.image && (
+                  <Image 
+                    src={user.image} 
+                    alt={user.name || "User"} 
+                    width={32} 
+                    height={32} 
+                    className="rounded-full"
+                  />
+                )}
+                <span className="text-sm text-slate-600">
+                  Welcome, {user.name || user.email}
+                </span>
+              </div>
+              <SignOutButton />
             </div>
           </div>
         </div>
@@ -57,7 +71,9 @@ export default async function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">Generate Content</Button>
+              <Link href="/dashboard/ai">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">Generate Content</Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -74,7 +90,9 @@ export default async function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-green-600 hover:bg-green-700">Create Newsletter</Button>
+              <Link href="/dashboard/newsletter">
+                <Button className="w-full bg-green-600 hover:bg-green-700">Create Newsletter</Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -91,7 +109,9 @@ export default async function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">Schedule Posts</Button>
+              <Link href="/dashboard/social">
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">Schedule Posts</Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

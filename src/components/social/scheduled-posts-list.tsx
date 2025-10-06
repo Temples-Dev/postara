@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { Badge } from "@/ui/badge"
-import { Button } from "@/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Twitter, Linkedin, Facebook, Instagram, Trash2, Edit } from "lucide-react"
 import { toast } from "sonner"
 
@@ -15,7 +15,7 @@ interface ScheduledPost {
   scheduled_at: string
   published_at?: string
   error_message?: string
-}
+} 
 
 const platformIcons = {
   twitter: Twitter,

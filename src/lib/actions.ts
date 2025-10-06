@@ -57,5 +57,5 @@ export async function signUp(prevState: any, formData: FormData) {
 
 export async function signOut() {
   await mockSignOut()
-  redirect("/auth/login")
+  redirect("/signin")
 }
