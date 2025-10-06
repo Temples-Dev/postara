@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: postara-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postara}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postara_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-postara}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - postara-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postara}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    container_name: postara-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-postara_redis_password}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - postara-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: postara-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3001}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postara}:${POSTGRES_PASSWORD:-postara_dev_password}@postgres:5432/${POSTGRES_DB:-postara}?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD:-postara_redis_password}@redis:6379
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - postara-network
+    command: pnpm run start:dev
+
+  # Next.js Frontend (Optional - can run separately)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: postara-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - postara-network
+    profiles:
+      - full-stack
+    command: pnpm run dev
+
+  # Adminer for database management (Development only)
+  adminer:
+    image: adminer:latest
+    container_name: postara-adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - postara-network
+    profiles:
+      - tools
+
+  # Redis Commander for Redis management (Development only)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: postara-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-postara_redis_password}
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    depends_on:
+      - redis
+    networks:
+      - postara-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  postara-network:
+    driver: bridge
