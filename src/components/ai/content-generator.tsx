@@ -3,13 +3,13 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Textarea } from "@/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select"
+import { Badge } from "@/ui/badge"
 import { Loader2, Copy, Sparkles, MessageSquare, Mail, FileText, Megaphone } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 const contentTypes = [
   { value: "social", label: "Social Media Post", icon: MessageSquare },
@@ -40,7 +40,6 @@ export function ContentGenerator() {
   const [aiProvider, setAiProvider] = useState("grok")
   const [isLoading, setIsLoading] = useState(false)
   const [generatedContent, setGeneratedContent] = useState("")
-  const { toast } = useToast()
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,11 +83,7 @@ export function ContentGenerator() {
         }
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate content. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to generate content. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -97,16 +92,9 @@ export function ContentGenerator() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(generatedContent)
-      toast({
-        title: "Copied!",
-        description: "Content copied to clipboard",
-      })
+      toast.success("Content copied to clipboard")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy content",
-        variant: "destructive",
-      })
+      toast.error("Failed to copy content")
     }
   }
 

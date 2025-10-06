@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/ui/button"
+import { Textarea } from "@/ui/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Badge } from "@/ui/badge"
+import { Input } from "@/ui/input"
 import { Calendar, Clock, Send, Save, Sparkles, Twitter, Linkedin, Facebook, Instagram } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 const platforms = [
   { value: "twitter", label: "Twitter/X", icon: Twitter, maxChars: 280 },
@@ -27,7 +27,6 @@ export function PostComposer({ onPostScheduled }: PostComposerProps) {
   const [scheduledTime, setScheduledTime] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isGeneratingContent, setIsGeneratingContent] = useState(false)
-  const { toast } = useToast()
 
   const handlePlatformToggle = (platform: string) => {
     setSelectedPlatforms((prev) => (prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]))
@@ -35,11 +34,7 @@ export function PostComposer({ onPostScheduled }: PostComposerProps) {
 
   const generateContent = async () => {
     if (!content.trim()) {
-      toast({
-        title: "Content required",
-        description: "Please enter some content to optimize for social media.",
-        variant: "destructive",
-      })
+      toast.error("Please enter some content to optimize for social media.")
       return
     }
 
@@ -78,16 +73,9 @@ export function PostComposer({ onPostScheduled }: PostComposerProps) {
       }
 
       setContent(optimizedContent)
-      toast({
-        title: "Content optimized!",
-        description: "Your content has been optimized for social media.",
-      })
+      toast.success("Content optimized for social media!")
     } catch (error) {
-      toast({
-        title: "Generation failed",
-        description: "Failed to optimize content. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to optimize content. Please try again.")
     } finally {
       setIsGeneratingContent(false)
     }
@@ -95,11 +83,7 @@ export function PostComposer({ onPostScheduled }: PostComposerProps) {
 
   const handleSchedule = async () => {
     if (!content.trim() || selectedPlatforms.length === 0 || !scheduledDate || !scheduledTime) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      })
+      toast.error("Please fill in all required fields.")
       return
     }
 
@@ -126,10 +110,7 @@ export function PostComposer({ onPostScheduled }: PostComposerProps) {
         throw new Error(data.error || "Failed to schedule post")
       }
 
-      toast({
-        title: "Post scheduled!",
-        description: `Your post has been scheduled for ${selectedPlatforms.length} platform(s).`,
-      })
+      toast.success(`Post scheduled for ${selectedPlatforms.length} platform(s)!`)
 
       // Reset form
       setContent("")
@@ -141,11 +122,7 @@ export function PostComposer({ onPostScheduled }: PostComposerProps) {
         onPostScheduled()
       }
     } catch (error) {
-      toast({
-        title: "Scheduling failed",
-        description: error instanceof Error ? error.message : "Please try again later.",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Scheduling failed. Please try again later.")
     } finally {
       setIsLoading(false)
     }

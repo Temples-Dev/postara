@@ -135,7 +135,11 @@ export const mockAIGenerations: MockAIGeneration[] = [
 
 // Helper function to get current mock user
 export function getCurrentMockUser(): MockUser {
-  return mockUsers[0]
+  const user = mockUsers[0]
+  if (!user) {
+    throw new Error('No mock users available')
+  }
+  return user
 }
 
 // Helper to simulate async operations

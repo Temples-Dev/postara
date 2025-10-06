@@ -1,6 +1,3 @@
-// Prisma Schema for Postara Marketing Automation Platform
-// Database: PostgreSQL
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,59 +7,193 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// USERS & AUTHENTICATION
-// ============================================
+model ai_generations {
+  id         String             @id
+  user_id    String
+  type       AIContentType
+  prompt     String
+  content    String
+  model      String             @default("gpt-4")
+  tokens     Int                @default(0)
+  status     AIGenerationStatus @default(COMPLETED)
+  metadata   Json?
+  created_at DateTime           @default(now())
+  user       User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  name          String?
-  image         String?
-  password      String? // Hashed password
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  workspaces       WorkspaceMember[]
-  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
-  sessions         Session[]
-  accounts         Account[]
-  aiGenerations    AIGeneration[]
-  contentLibrary   ContentLibrary[]
-
-  @@map("users")
+  @@index([user_id])
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
-  type              String
-  provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
+model campaign_analytics {
+  id            String      @id
+  campaign_id   String
+  subscriber_id String
+  sent          Boolean     @default(false)
+  delivered     Boolean     @default(false)
+  opened        Boolean     @default(false)
+  clicked       Boolean     @default(false)
+  bounced       Boolean     @default(false)
+  complained    Boolean     @default(false)
+  unsubscribed  Boolean     @default(false)
+  opened_at     DateTime?
+  clicked_at    DateTime?
+  created_at    DateTime    @default(now())
+  campaigns     campaigns   @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  subscribers   subscribers @relation(fields: [subscriber_id], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
+  @@unique([campaign_id, subscriber_id])
+  @@index([campaign_id])
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model campaigns {
+  id                 String               @id
+  workspace_id       String
+  list_id            String
+  name               String
+  subject            String
+  preheader          String?
+  from_name          String
+  from_email         String
+  reply_to           String?
+  content            String
+  status             CampaignStatus       @default(DRAFT)
+  scheduled_at       DateTime?
+  sent_at            DateTime?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime
+  campaign_analytics campaign_analytics[]
+  email_lists        email_lists          @relation(fields: [list_id], references: [id], onDelete: Cascade)
+  workspaces         workspaces           @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+}
 
-  @@map("sessions")
+model content_library {
+  id           String      @id
+  workspace_id String
+  user_id      String
+  title        String
+  content      String
+  type         ContentType
+  tags         String[]
+  metadata     Json?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime
+  user         User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  workspaces   workspaces  @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+
+  @@index([workspace_id])
+}
+
+model email_lists {
+  id           String        @id
+  workspace_id String
+  name         String
+  description  String?
+  created_at   DateTime      @default(now())
+  updated_at   DateTime
+  campaigns    campaigns[]
+  workspaces   workspaces    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  subscribers  subscribers[]
+}
+
+model social_accounts {
+  id               String              @id
+  workspace_id     String
+  platform         SocialPlatform
+  account_id       String
+  account_name     String
+  username         String?
+  avatar           String?
+  access_token     String
+  refresh_token    String?
+  expires_at       DateTime?
+  status           SocialAccountStatus @default(ACTIVE)
+  created_at       DateTime            @default(now())
+  updated_at       DateTime
+  workspaces       workspaces          @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  social_analytics social_analytics[]
+  social_posts     social_posts[]
+
+  @@unique([platform, account_id])
+}
+
+model social_analytics {
+  id              String          @id
+  post_id         String
+  account_id      String
+  likes           Int             @default(0)
+  comments        Int             @default(0)
+  shares          Int             @default(0)
+  views           Int             @default(0)
+  clicks          Int             @default(0)
+  fetched_at      DateTime        @default(now())
+  social_accounts social_accounts @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  social_posts    social_posts    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+}
+
+model social_posts {
+  id               String             @id
+  workspace_id     String
+  account_id       String
+  content          String
+  media_urls       String[]
+  status           SocialPostStatus   @default(DRAFT)
+  scheduled_at     DateTime?
+  published_at     DateTime?
+  platform_post_id String?            @unique
+  error_message    String?
+  created_at       DateTime           @default(now())
+  updated_at       DateTime
+  social_analytics social_analytics[]
+  social_accounts  social_accounts    @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  workspaces       workspaces         @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+}
+
+model subscribers {
+  id                 String               @id
+  list_id            String
+  email              String
+  first_name         String?
+  last_name          String?
+  status             SubscriberStatus     @default(PENDING)
+  tags               String[]
+  custom_fields      Json?
+  subscribed_at      DateTime?
+  unsubscribed_at    DateTime?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime
+  campaign_analytics campaign_analytics[]
+  email_lists        email_lists          @relation(fields: [list_id], references: [id], onDelete: Cascade)
+
+  @@unique([list_id, email])
+  @@index([email])
+}
+
+model subscriptions {
+  id                     String             @id
+  workspace_id           String             @unique
+  plan                   SubscriptionPlan
+  status                 SubscriptionStatus @default(TRIAL)
+  stripe_customer_id     String?            @unique
+  stripe_subscription_id String?            @unique
+  stripe_price_id        String?
+  current_period_start   DateTime?
+  current_period_end     DateTime?
+  cancel_at_period_end   Boolean            @default(false)
+  created_at             DateTime           @default(now())
+  updated_at             DateTime
+  workspaces             workspaces         @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  usage_records          usage_records[]
+}
+
+model usage_records {
+  id              String        @id
+  subscription_id String
+  type            UsageType
+  count           Int           @default(0)
+  month           DateTime
+  created_at      DateTime      @default(now())
+  subscriptions   subscriptions @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+
+  @@unique([subscription_id, type, month])
 }
 
 model VerificationToken {
@@ -74,328 +205,64 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ============================================
-// WORKSPACES & TEAMS
-// ============================================
+model webhook_logs {
+  id          String   @id
+  webhook_id  String
+  event       String
+  payload     Json
+  response    Json?
+  status_code Int?
+  success     Boolean  @default(false)
+  created_at  DateTime @default(now())
+  webhooks    webhooks @relation(fields: [webhook_id], references: [id], onDelete: Cascade)
 
-model Workspace {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  ownerId     String   @map("owner_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  owner            User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members          WorkspaceMember[]
-  subscription     Subscription?
-  emailLists       EmailList[]
-  campaigns        Campaign[]
-  socialAccounts   SocialAccount[]
-  socialPosts      SocialPost[]
-  contentLibrary   ContentLibrary[]
-  webhooks         Webhook[]
-
-  @@map("workspaces")
+  @@index([webhook_id])
 }
 
-model WorkspaceMember {
-  id          String   @id @default(cuid())
-  workspaceId String   @map("workspace_id")
-  userId      String   @map("user_id")
-  role        Role     @default(MEMBER)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([workspaceId, userId])
-  @@map("workspace_members")
+model webhooks {
+  id           String         @id
+  workspace_id String
+  name         String
+  url          String
+  events       String[]
+  secret       String
+  status       WebhookStatus  @default(ACTIVE)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime
+  webhook_logs webhook_logs[]
+  workspaces   workspaces     @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 }
 
-enum Role {
-  OWNER
-  ADMIN
-  MEMBER
-  VIEWER
+model workspace_members {
+  id           String     @id
+  workspace_id String
+  user_id      String
+  role         Role       @default(MEMBER)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime
+  user         User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  workspaces   workspaces @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+
+  @@unique([workspace_id, user_id])
 }
 
-// ============================================
-// SUBSCRIPTIONS & BILLING
-// ============================================
-
-model Subscription {
-  id                 String             @id @default(cuid())
-  workspaceId        String             @unique @map("workspace_id")
-  plan               SubscriptionPlan
-  status             SubscriptionStatus @default(TRIAL)
-  stripeCustomerId   String?            @unique @map("stripe_customer_id")
-  stripeSubscriptionId String?          @unique @map("stripe_subscription_id")
-  stripePriceId      String?            @map("stripe_price_id")
-  currentPeriodStart DateTime?          @map("current_period_start")
-  currentPeriodEnd   DateTime?          @map("current_period_end")
-  cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
-  createdAt          DateTime           @default(now()) @map("created_at")
-  updatedAt          DateTime           @updatedAt @map("updated_at")
-
-  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  usageRecords  UsageRecord[]
-
-  @@map("subscriptions")
-}
-
-enum SubscriptionPlan {
-  FREE
-  STARTER
-  PROFESSIONAL
-  ENTERPRISE
-}
-
-enum SubscriptionStatus {
-  TRIAL
-  ACTIVE
-  PAST_DUE
-  CANCELED
-  INCOMPLETE
-}
-
-model UsageRecord {
-  id             String   @id @default(cuid())
-  subscriptionId String   @map("subscription_id")
-  type           UsageType
-  count          Int      @default(0)
-  month          DateTime
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-
-  @@unique([subscriptionId, type, month])
-  @@map("usage_records")
-}
-
-enum UsageType {
-  EMAIL_SUBSCRIBERS
-  EMAILS_SENT
-  SOCIAL_POSTS
-  AI_GENERATIONS
-}
-
-// ============================================
-// EMAIL NEWSLETTER SYSTEM
-// ============================================
-
-model EmailList {
-  id          String   @id @default(cuid())
-  workspaceId String   @map("workspace_id")
-  name        String
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  subscribers Subscriber[]
-  campaigns   Campaign[]
-
-  @@map("email_lists")
-}
-
-model Subscriber {
-  id          String           @id @default(cuid())
-  listId      String           @map("list_id")
-  email       String
-  firstName   String?          @map("first_name")
-  lastName    String?          @map("last_name")
-  status      SubscriberStatus @default(PENDING)
-  tags        String[]
-  customFields Json?           @map("custom_fields")
-  subscribedAt DateTime?       @map("subscribed_at")
-  unsubscribedAt DateTime?     @map("unsubscribed_at")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-
-  list              EmailList           @relation(fields: [listId], references: [id], onDelete: Cascade)
-  campaignAnalytics CampaignAnalytics[]
-
-  @@unique([listId, email])
-  @@index([email])
-  @@map("subscribers")
-}
-
-enum SubscriberStatus {
-  PENDING
-  SUBSCRIBED
-  UNSUBSCRIBED
-  BOUNCED
-  COMPLAINED
-}
-
-model Campaign {
-  id          String         @id @default(cuid())
-  workspaceId String         @map("workspace_id")
-  listId      String         @map("list_id")
-  name        String
-  subject     String
-  preheader   String?
-  fromName    String         @map("from_name")
-  fromEmail   String         @map("from_email")
-  replyTo     String?        @map("reply_to")
-  content     String         @db.Text
-  status      CampaignStatus @default(DRAFT)
-  scheduledAt DateTime?      @map("scheduled_at")
-  sentAt      DateTime?      @map("sent_at")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
-
-  workspace  Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  list       EmailList           @relation(fields: [listId], references: [id], onDelete: Cascade)
-  analytics  CampaignAnalytics[]
-
-  @@map("campaigns")
-}
-
-enum CampaignStatus {
-  DRAFT
-  SCHEDULED
-  SENDING
-  SENT
-  PAUSED
-  CANCELED
-}
-
-model CampaignAnalytics {
-  id           String    @id @default(cuid())
-  campaignId   String    @map("campaign_id")
-  subscriberId String    @map("subscriber_id")
-  sent         Boolean   @default(false)
-  delivered    Boolean   @default(false)
-  opened       Boolean   @default(false)
-  clicked      Boolean   @default(false)
-  bounced      Boolean   @default(false)
-  complained   Boolean   @default(false)
-  unsubscribed Boolean   @default(false)
-  openedAt     DateTime? @map("opened_at")
-  clickedAt    DateTime? @map("clicked_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-
-  campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  subscriber Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
-
-  @@unique([campaignId, subscriberId])
-  @@index([campaignId])
-  @@map("campaign_analytics")
-}
-
-// ============================================
-// SOCIAL MEDIA SCHEDULER
-// ============================================
-
-model SocialAccount {
-  id          String             @id @default(cuid())
-  workspaceId String             @map("workspace_id")
-  platform    SocialPlatform
-  accountId   String             @map("account_id")
-  accountName String             @map("account_name")
-  username    String?
-  avatar      String?
-  accessToken String             @map("access_token") @db.Text
-  refreshToken String?           @map("refresh_token") @db.Text
-  expiresAt   DateTime?          @map("expires_at")
-  status      SocialAccountStatus @default(ACTIVE)
-  createdAt   DateTime           @default(now()) @map("created_at")
-  updatedAt   DateTime           @updatedAt @map("updated_at")
-
-  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  posts     SocialPost[]
-  analytics SocialAnalytics[]
-
-  @@unique([platform, accountId])
-  @@map("social_accounts")
-}
-
-enum SocialPlatform {
-  TWITTER
-  FACEBOOK
-  INSTAGRAM
-  LINKEDIN
-}
-
-enum SocialAccountStatus {
-  ACTIVE
-  EXPIRED
-  REVOKED
-  ERROR
-}
-
-model SocialPost {
-  id          String           @id @default(cuid())
-  workspaceId String           @map("workspace_id")
-  accountId   String           @map("account_id")
-  content     String           @db.Text
-  mediaUrls   String[]         @map("media_urls")
-  status      SocialPostStatus @default(DRAFT)
-  scheduledAt DateTime?        @map("scheduled_at")
-  publishedAt DateTime?        @map("published_at")
-  platformPostId String?       @unique @map("platform_post_id")
-  errorMessage String?         @map("error_message")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-
-  workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account   SocialAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  analytics SocialAnalytics[]
-
-  @@map("social_posts")
-}
-
-enum SocialPostStatus {
-  DRAFT
-  SCHEDULED
-  PUBLISHING
-  PUBLISHED
-  FAILED
-  DELETED
-}
-
-model SocialAnalytics {
-  id        String   @id @default(cuid())
-  postId    String   @map("post_id")
-  accountId String   @map("account_id")
-  likes     Int      @default(0)
-  comments  Int      @default(0)
-  shares    Int      @default(0)
-  views     Int      @default(0)
-  clicks    Int      @default(0)
-  fetchedAt DateTime @default(now()) @map("fetched_at")
-
-  post    SocialPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  account SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
-
-  @@map("social_analytics")
-}
-
-// ============================================
-// AI CONTENT GENERATOR
-// ============================================
-
-model AIGeneration {
-  id          String           @id @default(cuid())
-  userId      String           @map("user_id")
-  type        AIContentType
-  prompt      String           @db.Text
-  content     String           @db.Text
-  model       String           @default("gpt-4")
-  tokens      Int              @default(0)
-  status      AIGenerationStatus @default(COMPLETED)
-  metadata    Json?
-  createdAt   DateTime         @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("ai_generations")
+model workspaces {
+  id                String              @id
+  name              String
+  slug              String              @unique
+  description       String?
+  owner_id          String
+  created_at        DateTime            @default(now())
+  updated_at        DateTime
+  campaigns         campaigns[]
+  content_library   content_library[]
+  email_lists       email_lists[]
+  social_accounts   social_accounts[]
+  social_posts      social_posts[]
+  subscriptions     subscriptions?
+  webhooks          webhooks[]
+  workspace_members workspace_members[]
+  owner             User                @relation(fields: [owner_id], references: [id], onDelete: Cascade)
 }
 
 enum AIContentType {
@@ -414,23 +281,13 @@ enum AIGenerationStatus {
   FAILED
 }
 
-model ContentLibrary {
-  id          String        @id @default(cuid())
-  workspaceId String        @map("workspace_id")
-  userId      String        @map("user_id")
-  title       String
-  content     String        @db.Text
-  type        ContentType
-  tags        String[]
-  metadata    Json?
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([workspaceId])
-  @@map("content_library")
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+  CANCELED
 }
 
 enum ContentType {
@@ -441,25 +298,64 @@ enum ContentType {
   SNIPPET
 }
 
-// ============================================
-// WEBHOOKS & INTEGRATIONS
-// ============================================
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
 
-model Webhook {
-  id          String        @id @default(cuid())
-  workspaceId String        @map("workspace_id")
-  name        String
-  url         String
-  events      String[]
-  secret      String
-  status      WebhookStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+enum SocialAccountStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  ERROR
+}
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  logs      WebhookLog[]
+enum SocialPlatform {
+  TWITTER
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+}
 
-  @@map("webhooks")
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  DELETED
+}
+
+enum SubscriberStatus {
+  PENDING
+  SUBSCRIBED
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+enum UsageType {
+  EMAIL_SUBSCRIBERS
+  EMAILS_SENT
+  SOCIAL_POSTS
+  AI_GENERATIONS
 }
 
 enum WebhookStatus {
@@ -468,18 +364,66 @@ enum WebhookStatus {
   FAILED
 }
 
-model WebhookLog {
-  id         String   @id @default(cuid())
-  webhookId  String   @map("webhook_id")
-  event      String
-  payload    Json
-  response   Json?
-  statusCode Int?     @map("status_code")
-  success    Boolean  @default(false)
-  createdAt  DateTime @default(now()) @map("created_at")
+model User {
+  id                String              @id
+  name              String
+  email             String
+  emailVerified     Boolean             @default(false)
+  image             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @default(now()) @updatedAt
+  sessions          Session[]
+  accounts          Account[]
+  ai_generations    ai_generations[]
+  content_library   content_library[]
+  workspace_members workspace_members[]
+  workspaces        workspaces[]
 
-  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  @@unique([email])
+  @@map("users")
+}
 
-  @@index([webhookId])
-  @@map("webhook_logs")
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
 }

@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/ui/button"
+import { Input } from "@/ui/input"
+import { Textarea } from "@/ui/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Badge } from "@/ui/badge"
 import { Mail, Send, Save, Calendar } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface Newsletter {
   id?: string
@@ -30,15 +30,10 @@ export function NewsletterEditor({ newsletter, onSave }: NewsletterEditorProps) 
   const [status, setStatus] = useState<"draft" | "scheduled" | "sent">(newsletter?.status || "draft")
   const [scheduledAt, setScheduledAt] = useState(newsletter?.scheduled_at || "")
   const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
 
   const handleSave = async (newStatus?: "draft" | "scheduled" | "sent") => {
     if (!title.trim() || !subject.trim() || !content.trim()) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      })
+      toast.error("Please fill in all required fields.")
       return
     }
 
@@ -68,20 +63,13 @@ export function NewsletterEditor({ newsletter, onSave }: NewsletterEditorProps) 
         throw new Error(data.error || "Failed to save newsletter")
       }
 
-      toast({
-        title: "Newsletter saved!",
-        description: newStatus === "sent" ? "Newsletter sent successfully!" : "Your newsletter has been saved.",
-      })
+      toast.success(newStatus === "sent" ? "Newsletter sent successfully!" : "Newsletter saved!")
 
       if (onSave) {
         onSave(data.newsletter)
       }
     } catch (error) {
-      toast({
-        title: "Save failed",
-        description: error instanceof Error ? error.message : "Please try again later.",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to save newsletter. Please try again later.")
     } finally {
       setIsLoading(false)
     }

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Badge } from "@/ui/badge"
+import { Button } from "@/ui/button"
 import { Calendar, Clock, Twitter, Linkedin, Facebook, Instagram, Trash2, Edit } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface ScheduledPost {
   id: string
@@ -27,7 +27,6 @@ const platformIcons = {
 export function ScheduledPostsList() {
   const [posts, setPosts] = useState<ScheduledPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const { toast } = useToast()
 
   const fetchPosts = async () => {
     try {
@@ -55,19 +54,12 @@ export function ScheduledPostsList() {
 
       if (response.ok) {
         setPosts((prev) => prev.filter((post) => post.id !== postId))
-        toast({
-          title: "Post deleted",
-          description: "The scheduled post has been deleted.",
-        })
+        toast.success("Scheduled post deleted successfully")
       } else {
         throw new Error("Failed to delete post")
       }
     } catch (error) {
-      toast({
-        title: "Delete failed",
-        description: "Failed to delete the post. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to delete the post. Please try again.")
     }
   }
 

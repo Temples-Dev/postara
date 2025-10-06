@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, CheckCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface SubscriptionFormProps {
   source?: string
@@ -26,7 +26,6 @@ export function SubscriptionForm({
   const [firstName, setFirstName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,16 +53,9 @@ export function SubscriptionForm({
       }
 
       setIsSubscribed(true)
-      toast({
-        title: "Successfully subscribed!",
-        description: "Thank you for subscribing to our newsletter.",
-      })
+      toast.success("Successfully subscribed! Thank you for subscribing to our newsletter.")
     } catch (error) {
-      toast({
-        title: "Subscription failed",
-        description: error instanceof Error ? error.message : "Please try again later.",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Subscription failed. Please try again later.")
     } finally {
       setIsLoading(false)
     }
