@@ -52,9 +52,9 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: ${BACKEND_PORT:-3001}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postara}:${POSTGRES_PASSWORD:-postara_dev_password}@postgres:5432/${POSTGRES_DB:-postara}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postara}:${POSTGRES_PASSWORD:-postara_dev_password}@postgres:5432/${POSTGRES_DB:-postara}
       REDIS_URL: redis://:${REDIS_PASSWORD:-postara_redis_password}@redis:6379
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     ports:
       - "${BACKEND_PORT:-3001}:3001"
     volumes:
@@ -70,27 +70,28 @@ services:
       - postara-network
     command: pnpm run start:dev
 
-  # Next.js Frontend (Optional - can run separately)
+  # Vite + React Frontend (Optional - can run separately)
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      target: development
     container_name: postara-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/.next
+      - /app/dist
     networks:
       - postara-network
     profiles:
       - full-stack
-    command: pnpm run dev
+    command: pnpm run dev -- --host 0.0.0.0 --port 5173
 
   # Adminer for database management (Development only)
   adminer:

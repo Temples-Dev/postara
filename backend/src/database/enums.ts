@@ -1,0 +1,98 @@
+export enum AIContentType {
+  EMAIL_SUBJECT = 'EMAIL_SUBJECT',
+  EMAIL_BODY = 'EMAIL_BODY',
+  SOCIAL_POST = 'SOCIAL_POST',
+  BLOG_OUTLINE = 'BLOG_OUTLINE',
+  BLOG_POST = 'BLOG_POST',
+  REPURPOSE = 'REPURPOSE',
+}
+
+export enum AIGenerationStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum CampaignStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  SENDING = 'SENDING',
+  SENT = 'SENT',
+  PAUSED = 'PAUSED',
+  CANCELED = 'CANCELED',
+}
+
+export enum ContentType {
+  EMAIL = 'EMAIL',
+  SOCIAL = 'SOCIAL',
+  BLOG = 'BLOG',
+  TEMPLATE = 'TEMPLATE',
+  SNIPPET = 'SNIPPET',
+}
+
+export enum WorkspaceRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+  VIEWER = 'VIEWER',
+}
+
+export enum SocialAccountStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  REVOKED = 'REVOKED',
+  ERROR = 'ERROR',
+}
+
+export enum SocialPlatform {
+  TWITTER = 'TWITTER',
+  FACEBOOK = 'FACEBOOK',
+  INSTAGRAM = 'INSTAGRAM',
+  LINKEDIN = 'LINKEDIN',
+}
+
+export enum SocialPostStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  PUBLISHING = 'PUBLISHING',
+  PUBLISHED = 'PUBLISHED',
+  FAILED = 'FAILED',
+  DELETED = 'DELETED',
+}
+
+export enum SubscriberStatus {
+  PENDING = 'PENDING',
+  SUBSCRIBED = 'SUBSCRIBED',
+  UNSUBSCRIBED = 'UNSUBSCRIBED',
+  BOUNCED = 'BOUNCED',
+  COMPLAINED = 'COMPLAINED',
+}
+
+export enum SubscriptionPlan {
+  FREE = 'FREE',
+  STARTER = 'STARTER',
+  PROFESSIONAL = 'PROFESSIONAL',
+  ENTERPRISE = 'ENTERPRISE',
+}
+
+export enum SubscriptionStatus {
+  TRIAL = 'TRIAL',
+  ACTIVE = 'ACTIVE',
+  PAST_DUE = 'PAST_DUE',
+  CANCELED = 'CANCELED',
+  INCOMPLETE = 'INCOMPLETE',
+}
+
+export enum UsageType {
+  EMAIL_SUBSCRIBERS = 'EMAIL_SUBSCRIBERS',
+  EMAILS_SENT = 'EMAILS_SENT',
+  SOCIAL_POSTS = 'SOCIAL_POSTS',
+  AI_GENERATIONS = 'AI_GENERATIONS',
+}
+
+export enum WebhookStatus {
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  FAILED = 'FAILED',
+}
