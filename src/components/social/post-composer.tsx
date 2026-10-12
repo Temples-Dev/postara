@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Calendar, Clock, Send, Save, Sparkles, Twitter, Linkedin, Facebook, Instagram } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toaster"
 
 const platforms = [
   { value: "twitter", label: "Twitter/X", icon: Twitter, maxChars: 280 },

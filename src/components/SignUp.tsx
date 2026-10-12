@@ -12,7 +12,7 @@ import { Label } from "./ui/label";
 import { useState } from "react";
 import { Loader2, X, UserPlus } from "lucide-react";
 import { signUp, signIn } from "../lib/auth-client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toaster";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {

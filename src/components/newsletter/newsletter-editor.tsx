@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, Send, Save, Calendar } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toaster"
 
 interface Newsletter {
   id?: string

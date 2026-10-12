@@ -6,7 +6,7 @@ import "./styles/globals.css"
 import SignIn from "@/components/SignIn"
 import SignUp from "@/components/SignUp"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/toaster"
 
 const root = document.getElementById("root")
 

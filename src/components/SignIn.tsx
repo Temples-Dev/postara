@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Loader2, Mail } from "lucide-react";
 import { signIn } from "../lib/auth-client";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toaster";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
