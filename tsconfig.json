@@ -17,11 +17,11 @@
 
     /* Bundled projects */
     "lib": ["dom", "dom.iterable", "ES2022"],
+    "types": ["vite/client", "node"],
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "jsx": "preserve",
-    "plugins": [{ "name": "next" }],
+    "jsx": "react-jsx",
     "incremental": true,
 
     /* Path Aliases */
@@ -31,12 +31,10 @@
     }
   },
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "**/*.cjs",
-    "**/*.js",
-    ".next/types/**/*.ts"
+    "**/*.js"
   ],
   "exclude": ["node_modules"]
 }

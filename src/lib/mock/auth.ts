@@ -1,61 +1,53 @@
-// Mock authentication for development
-import { cookies } from 'next/headers'
+// Mock authentication for development (client-side, Vite/React).
+// Session is persisted in localStorage instead of Next.js cookies.
 import type { MockUser } from './types'
 import { mockUsers } from './data'
 
-const MOCK_SESSION_COOKIE = 'mock-session'
+const MOCK_SESSION_KEY = 'mock-session'
 
 export interface MockSession {
   user: MockUser
   expires: string
 }
 
-// Server-side auth helpers
-export async function getMockSession(): Promise<MockSession | null> {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
-  
-  if (!sessionCookie) {
-    return null
-  }
-
+function readStoredSession(): MockSession | null {
   try {
-    const session = JSON.parse(sessionCookie.value) as MockSession
-    
-    // Check if session is expired
-    if (new Date(session.expires) < new Date()) {
+    const raw = localStorage.getItem(MOCK_SESSION_KEY)
+    if (!raw) {
       return null
     }
-    
+    const session = JSON.parse(raw) as MockSession
+    if (new Date(session.expires) < new Date()) {
+      localStorage.removeItem(MOCK_SESSION_KEY)
+      return null
+    }
     return session
   } catch {
     return null
   }
 }
 
+// Client-side auth helpers
+export async function getMockSession(): Promise<MockSession | null> {
+  return readStoredSession()
+}
+
 export async function getMockUser(): Promise<MockUser | null> {
-  const session = await getMockSession()
+  const session = readStoredSession()
   return session?.user || null
 }
 
 export async function setMockSession(user: MockUser): Promise<void> {
-  const cookieStore = await cookies()
   const session: MockSession = {
     user,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
   }
-  
-  cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify(session), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
-  })
+
+  localStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(session))
 }
 
 export async function clearMockSession(): Promise<void> {
-  const cookieStore = await cookies()
-  cookieStore.delete(MOCK_SESSION_COOKIE)
+  localStorage.removeItem(MOCK_SESSION_KEY)
 }
 
 // Mock sign in
@@ -68,13 +60,13 @@ export async function mockSignIn(email: string, password: string): Promise<{ use
   // Find user by email or use default
   const user = mockUsers.find(u => u.email === email)
   const authenticatedUser = user || mockUsers[0]
-  
+
   if (!authenticatedUser) {
     return { error: 'No users available' }
   }
-  
+
   await setMockSession(authenticatedUser)
-  
+
   return { user: authenticatedUser }
 }
 
@@ -94,7 +86,7 @@ export async function mockSignUp(email: string, password: string): Promise<{ use
 
   mockUsers.push(newUser)
   await setMockSession(newUser)
-  
+
   return { user: newUser }
 }
 

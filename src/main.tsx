@@ -1,35 +1,31 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { Router, Route, Routes } from "react-router-dom"
-import { HistoryRouter } from "react-router"
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 
-import "@/styles.css"
+import "./styles/globals.css"
 import SignIn from "@/components/SignIn"
 import SignUp from "@/components/SignUp"
-import Dashboard from "@/components/dashboard/ai"
-import NewsletterEditor from "@/components/newsletter/newsletter-editor"
-import SubscriptionForm from "@/components/newsletter/subscription-form"
-import PostComposer from "@/components/social/post-composer"
-import ScheduledPostsList from "@/components/social/scheduled-posts-list"
-import ThemeProvider from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 
-const routes = (
-  <Routes>
-    <Route path="/signin" element={<SignIn />} />
-    <Route path="/signup" element={<SignUp />} />
-    <Route path="/dashboard/ai" element={<Dashboard />} />
-    <Route path="/newsletter" element={<NewsletterEditor />} />
-    <Route path="/subscription" element={<SubscriptionForm />} />
-    <Route path="/post" element={<PostComposer />} />
-    <Route path="/posts" element={<ScheduledPostsList />} />
-    <Route path="/" element={<SignIn />} />
-  </Routes>
-)
+const root = document.getElementById("root")
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <HistoryRouter>
-    <Router>
-      {routes}
-    </Router>
-  </HistoryRouter>
+if (!root) {
+  throw new Error("Missing #root element")
+}
+
+ReactDOM.createRoot(root).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/" element={<Navigate to="/signin" replace />} />
+          <Route path="*" element={<Navigate to="/signin" replace />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster />
+    </ThemeProvider>
+  </React.StrictMode>,
 )

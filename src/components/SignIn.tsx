@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "./ui/card";
 import { Input } from "./ui/input";
@@ -8,24 +6,22 @@ import { Checkbox } from "./ui/checkbox";
 import { useState } from "react";
 import { Loader2, Mail } from "lucide-react";
 import { signIn } from "../lib/auth-client";
-import Link from "next/link";
-import Image from "next/image";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return (
     <Card className="max-w-md w-full border-0 shadow-xl bg-white/95 backdrop-blur-sm">
       <CardHeader className="space-y-1 pb-4">
         <div className="flex items-center justify-center mb-2">
           <div className="flex items-center gap-2">
-            <Image src="/images/postara-logo.png" alt="Postara Logo" width={40} height={40} className="h-10 w-10" />
+            <img src="/images/postara-logo.png" alt="Postara Logo" className="h-10 w-10" />
             <span className="font-serif font-bold text-2xl text-slate-900">Postara</span>
           </div>
         </div>
@@ -95,10 +91,10 @@ export default function SignIn() {
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-slate-700">Password</Label>
-              <Link
-                href="#"
-                className="text-sm text-amber-600 hover:text-amber-700 underline"
-              >
+                <Link
+                  to="#"
+                  className="text-sm text-amber-600 hover:text-amber-700 underline"
+                >
                 Forgot password?
               </Link>
             </div>
@@ -151,7 +147,7 @@ export default function SignIn() {
                   },
                   onSuccess: () => {
                     toast.success("Welcome back!");
-                    router.push("/dashboard");
+                    navigate("/dashboard");
                   },
                   onError: (ctx) => {
                     toast.error(ctx.error.message || "Invalid email or password");
@@ -174,7 +170,7 @@ export default function SignIn() {
       <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
         <div className="text-center text-sm text-slate-600">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-amber-600 hover:text-amber-700 font-semibold underline">
+          <Link to="/signup" className="text-amber-600 hover:text-amber-700 font-semibold underline">
             Sign up
           </Link>
         </div>

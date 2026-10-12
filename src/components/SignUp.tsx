@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "./ui/button";
 import {
 	Card,
@@ -12,12 +10,10 @@ import {
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useState } from "react";
-import Image from "next/image";
 import { Loader2, X, UserPlus } from "lucide-react";
 import { signUp, signIn } from "../lib/auth-client";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
 	const [firstName, setFirstName] = useState("");
@@ -27,7 +23,7 @@ export default function SignUp() {
 	const [passwordConfirmation, setPasswordConfirmation] = useState("");
 	const [image, setImage] = useState<File | null>(null);
 	const [imagePreview, setImagePreview] = useState<string | null>(null);
-	const router = useRouter();
+	const navigate = useNavigate();
 	const [loading, setLoading] = useState(false);
 
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +43,7 @@ export default function SignUp() {
 			<CardHeader className="space-y-1 pb-4">
 				<div className="flex items-center justify-center mb-2">
 					<div className="flex items-center gap-2">
-						<Image src="/images/postara-logo.png" alt="Postara Logo" width={40} height={40} className="h-10 w-10" />
+						<img src="/images/postara-logo.png" alt="Postara Logo" className="h-10 w-10" />
 						<span className="font-serif font-bold text-2xl text-slate-900">Postara</span>
 					</div>
 				</div>
@@ -169,11 +165,10 @@ export default function SignUp() {
 						<div className="flex items-end gap-4">
 							{imagePreview && (
 								<div className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-amber-200">
-									<Image
+									<img
 										src={imagePreview}
 										alt="Profile preview"
-										fill
-										className="object-cover"
+										className="h-full w-full object-cover"
 									/>
 								</div>
 							)}
@@ -245,7 +240,7 @@ export default function SignUp() {
 										},
 										onSuccess: () => {
 											toast.success("Account created successfully!");
-											router.push("/dashboard");
+											navigate("/dashboard");
 										},
 									},
 								);
@@ -269,7 +264,7 @@ export default function SignUp() {
 			<CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
 				<div className="text-center text-sm text-slate-600">
 					Already have an account?{" "}
-					<Link href="/signin" className="text-amber-600 hover:text-amber-700 font-semibold underline">
+					<Link to="/signin" className="text-amber-600 hover:text-amber-700 font-semibold underline">
 						Sign in
 					</Link>
 				</div>

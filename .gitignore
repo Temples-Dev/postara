@@ -5,8 +5,6 @@
 
 # Output
 /dist
-/.next
-/out
 
 # Dependencies
 /coverage
